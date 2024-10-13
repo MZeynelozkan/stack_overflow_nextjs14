@@ -10,7 +10,7 @@ const Page = async () => {
   const userId = "12345"; // Bu ID'yi dinamik hale getirirken auth() kullanacaksınız.
   if (!userId) redirect("/sign-in");
 
-  const mongoUser = await getUserById(userId);
+  const mongoUser = await getUserById({ userId });
 
   if (!mongoUser) {
     console.log("Kullanıcı bulunamadı");
