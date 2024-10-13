@@ -1,88 +1,88 @@
 "use server";
 
 import User from "@/database/user.model";
-import { connectToDB } from "../mongoose";
+import { connectToDatabase } from "../mongoose";
 import {
   CreateUserParams,
-  DeleteAnswerParams,
+  DeleteUserParams,
   UpdateUserParams,
 } from "./shared.types";
 import { revalidatePath } from "next/cache";
-
 import Question from "@/database/question.model";
 
-export async function getUserById(userId: any) {
+export async function getUserById(params: any) {
   try {
-    await connectToDB();
-    console.log(`Veritabanına bağlanıldı, userId: ${userId}`);
+    connectToDatabase();
 
-    // Kullanıcının olup olmadığını kontrol etmek için ek logging
+    const { userId } = params;
+
     const user = await User.findOne({ clerkId: userId });
-    console.log(`Kullanıcı: ${user}`);
 
     return user;
   } catch (error) {
-    console.log("Hata oluştu:", error);
+    console.log(error);
     throw error;
   }
 }
 
 export async function createUser(userData: CreateUserParams) {
   try {
-    await connectToDB();
+    connectToDatabase();
+
     const newUser = await User.create(userData);
 
     return newUser;
   } catch (error) {
-    console.log("Hata oluştu:", error);
+    console.log(error);
     throw error;
   }
 }
 
 export async function updateUser(params: UpdateUserParams) {
   try {
-    await connectToDB();
+    connectToDatabase();
 
     const { clerkId, updateData, path } = params;
 
-    await User.findOneAndUpdate({ clerkId }, updateData, { new: true });
+    await User.findOneAndUpdate({ clerkId }, updateData, {
+      new: true,
+    });
 
     revalidatePath(path);
   } catch (error) {
-    console.log("Hata oluştu:", error);
+    console.log(error);
     throw error;
   }
 }
 
-export async function deleteUser(params: DeleteAnswerParams) {
+export async function deleteUser(params: DeleteUserParams) {
   try {
-    await connectToDB();
+    connectToDatabase();
 
     const { clerkId } = params;
 
     const user = await User.findOneAndDelete({ clerkId });
 
     if (!user) {
-      throw new Error("User Not Found");
+      throw new Error("User not found");
     }
 
-    // Delete User from database
-    // and questions,answers,comments,etc.
+    // Delete user from database
+    // and questions, answers, comments, etc.
 
     // get user question ids
-    // const userQuestionIds = await Question.find({ author: user._id }).distinct(
-    //   "_id"
-    // );
+    // const userQuestionIds = await Question.find({ author: user._id}).distinct('_id');
 
+    // delete user questions
     await Question.deleteMany({ author: user._id });
 
-    // TODO: delete user answers
+    // TODO: delete user answers, comments, etc.
 
     const deletedUser = await User.findByIdAndDelete(user._id);
 
     return deletedUser;
   } catch (error) {
-    console.log("Hata oluştu:", error);
+    console.log(error);
     throw error;
   }
 }

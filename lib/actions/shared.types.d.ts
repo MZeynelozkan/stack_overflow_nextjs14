@@ -2,7 +2,6 @@ import { Schema } from "mongoose";
 
 import { IUser } from "@/mongodb";
 
-// collapse(1:159)
 export interface CreateAnswerParams {
   content: string;
   author: string; // User ID
@@ -26,13 +25,12 @@ export interface AnswerVoteParams {
 }
 
 export interface DeleteAnswerParams {
-  clerkId: any;
-  answerId?: string;
-  path?: string;
+  answerId: string;
+  path: string;
 }
 
 export interface SearchParams {
-  query?: string | null;
+  query: string;
   type?: string | null;
 }
 
@@ -89,6 +87,7 @@ export interface EditQuestionParams {
   questionId: string;
   title: string;
   content: string;
+  tags: string[];
   path: string;
 }
 

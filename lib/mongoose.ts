@@ -2,11 +2,11 @@ import mongoose from "mongoose";
 
 let isConnected: boolean = false;
 
-export const connectToDB = async () => {
+export const connectToDatabase = async () => {
   mongoose.set("strictQuery", true);
 
   if (!process.env.MONGODB_URL) {
-    return console.log("Missing mongodb url");
+    return console.log("MISSING MONGODB_URL");
   }
 
   if (isConnected) {
@@ -15,10 +15,13 @@ export const connectToDB = async () => {
 
   try {
     await mongoose.connect(process.env.MONGODB_URL, {
-      dbName: "DevFlow",
+      dbName: "devflow",
     });
 
     isConnected = true;
-    console.log("Mongodb is connected");
-  } catch (error) {}
+
+    console.log("MongoDB is connected");
+  } catch (error) {
+    console.log("MongoDB connection failed", error);
+  }
 };
