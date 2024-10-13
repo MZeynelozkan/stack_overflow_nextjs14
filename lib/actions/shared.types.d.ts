@@ -26,6 +26,7 @@ export interface AnswerVoteParams {
 }
 
 export interface DeleteAnswerParams {
+  clerkId: string;
   answerId: string;
   path: string;
 }
