@@ -11,6 +11,7 @@ const Page = async () => {
   if (!userId) redirect("/sign-in");
 
   const mongoUser = await getUserById({ userId });
+  console.log("hello world");
 
   if (!mongoUser) {
     console.log("Kullanıcı bulunamadı");
