@@ -7,7 +7,7 @@ import { formatAndDivideNumber, getTimeStamp } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
-const Page = async ({ params, searchParams }: { params: { id: string } }) => {
+const Page = async ({ params }: { params: { id: string } }) => {
   const result = await getQuestionById({ questionId: params.id });
 
   console.log(result);
