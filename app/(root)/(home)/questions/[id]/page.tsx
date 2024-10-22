@@ -7,6 +7,12 @@ import { formatAndDivideNumber, getTimeStamp } from "@/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 
+interface TagProps {
+  _id: string;
+  name: string;
+  showCount: boolean;
+}
+
 const Page = async ({ params }: { params: { id: string } }) => {
   const result = await getQuestionById({ questionId: params.id });
 
@@ -65,12 +71,12 @@ const Page = async ({ params }: { params: { id: string } }) => {
       <ParseHTML data={result.content} />
 
       <div className="mt-8 flex flex-wrap gap-2">
-        {result.tags.map((tag) => (
+        {result.tags.map((tag: TagProps) => (
           <RenderTag
             key={tag._id}
             _id={tag._id}
             name={tag.name}
-            showCount={false}
+            showCount={tag.showCount}
           />
         ))}
       </div>
