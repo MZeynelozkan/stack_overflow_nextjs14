@@ -17,7 +17,18 @@ import { useTheme } from "@/context/ThemeProvider";
 import { Button } from "../ui/button";
 import Image from "next/image";
 
-const Answer = () => {
+import { createAnswer } from "@/lib/actions/answer.action";
+import { usePathname } from "next/navigation";
+
+interface Props {
+  questionId: string;
+  authorId: string;
+  question: string;
+}
+
+const Answer = ({ question, questionId, authorId }: Props) => {
+  const pathname = usePathname();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { mode } = useTheme();
 
@@ -30,7 +41,30 @@ const Answer = () => {
     },
   });
 
-  function handleCreateAnswer(data) {}
+  async function handleCreateAnswer(values: z.infer<typeof AnswerSchema>) {
+    setIsSubmitting(true);
+
+    try {
+      await createAnswer({
+        content: values.answer,
+        author: JSON.parse(authorId),
+        question: JSON.parse(questionId),
+        path: pathname,
+      });
+
+      form.reset();
+
+      if (editorRef.current) {
+        const editor = editorRef.current as any;
+
+        editor.setContent("");
+      }
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
 
   return (
     <div>
