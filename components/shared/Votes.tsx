@@ -3,6 +3,8 @@
 import { downvoteAnswer, upvoteAnswer } from "@/lib/actions/answer.action";
 import {
   downvoteQuestion,
+  saveQuestion,
+  togleSaveQuestion,
   upvoteQuestion,
 } from "@/lib/actions/question.action";
 
@@ -33,7 +35,13 @@ const Votes = ({
 }: Props) => {
   const pathname = usePathname();
 
-  const handleSave = async () => {};
+  const handleSave = async () => {
+    await togleSaveQuestion({
+      userId: JSON.parse(userId),
+      questionId: JSON.parse(itemId),
+      path: pathname,
+    });
+  };
 
   const handleVote = async (action: string) => {
     if (!userId) {

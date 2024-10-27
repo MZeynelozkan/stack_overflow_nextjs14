@@ -9,6 +9,7 @@ import {
   GetQuestionByIdParams,
   GetQuestionsParams,
   QuestionVoteParams,
+  ToggleSaveQuestionParams,
 } from "./shared.types";
 import User from "@/database/user.model";
 import { revalidatePath } from "next/cache";
@@ -37,28 +38,12 @@ export async function getQuestions(params: GetQuestionsParams) {
       ];
     }
 
-    let sortOptions = {};
-
-    switch (filter) {
-      case "newest":
-        sortOptions = { createdAt: -1 };
-        break;
-      case "frequent":
-        sortOptions = { views: -1 };
-        break;
-      case "unanswered":
-        query.answers = { $size: 0 };
-        break;
-      default:
-        break;
-    }
-
     const questions = await Question.find(query)
       .populate({ path: "tags", model: Tag })
       .populate({ path: "author", model: User })
       .skip(skipAmount)
       .limit(pageSize)
-      .sort(sortOptions);
+      .sort({ createdAt: -1 });
 
     const totalQuestions = await Question.countDocuments(query);
 
@@ -201,6 +186,41 @@ export async function downvoteQuestion(params: QuestionVoteParams) {
     }
 
     // Increment author's reputation
+
+    revalidatePath(path);
+  } catch (error) {
+    console.log(error);
+    throw error;
+  }
+}
+
+export async function togleSaveQuestion(params: ToggleSaveQuestionParams) {
+  try {
+    connectToDatabase();
+
+    const { userId, questionId, path } = params;
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const isQuestionSaved = user.saved.includes(questionId);
+
+    if (isQuestionSaved) {
+      await User.findByIdAndUpdate(
+        userId,
+        { $pull: { saved: questionId } },
+        { new: true }
+      );
+    } else {
+      await User.findByIdAndUpdate(
+        userId,
+        { $push: { saved: questionId } },
+        { new: true }
+      );
+    }
 
     revalidatePath(path);
   } catch (error) {
