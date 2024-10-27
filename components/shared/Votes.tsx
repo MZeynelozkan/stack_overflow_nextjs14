@@ -1,6 +1,25 @@
 import React from "react";
 
-const Votes = () => {
+interface Props {
+  type: string;
+  itemId: string;
+  userId: string;
+  upvotes: number;
+  hasupVoted: boolean;
+  downvotes: number;
+  hasdownVoted: boolean;
+  hasSaved?: boolean;
+}
+
+const Votes = ({
+  type,
+  itemId,
+  userId,
+  upvotes,
+  hasupVoted,
+  downvotes,
+  hasdownVoted,
+}: Props) => {
   return <div>Votes</div>;
 };
 

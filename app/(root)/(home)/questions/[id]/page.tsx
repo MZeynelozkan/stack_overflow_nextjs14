@@ -27,8 +27,6 @@ const Page = async ({ params }: { params: { id: string } }) => {
     mongoUser = await getUserById({ userId: clerkId });
   }
 
-  console.log(result);
-
   return (
     <>
       <div className="flex-start w-full flex-col">
