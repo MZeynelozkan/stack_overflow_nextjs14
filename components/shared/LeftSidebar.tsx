@@ -23,7 +23,7 @@ const LeftSidebar = () => {
             if (userId) {
               item.route = `/profile/${userId}`;
             } else {
-              null;
+              return null;
             }
           }
 
