@@ -99,9 +99,9 @@ const Page = async ({ params }: { params: { id: string } }) => {
       </div>
 
       <AllAnswers
-        questionId={result._id}
-        userId={mongoUser._id}
-        totalAnswers={result.answers.length}
+        questionId={result?._id}
+        userId={mongoUser?._id}
+        totalAnswers={result?.answers.length}
       />
 
       <Answer

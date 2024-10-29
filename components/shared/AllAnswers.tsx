@@ -1,7 +1,7 @@
 import React from "react";
 import Filter from "./Filter";
 import { AnswerFilters } from "@/constants/filters";
-import { getAllAnswer } from "@/lib/actions/answer.action";
+import { getAllAnswers } from "@/lib/actions/answer.action";
 import Link from "next/link";
 import Image from "next/image";
 import { getTimeStamp } from "@/lib/utils";
@@ -13,7 +13,7 @@ interface Props {
   userId: string;
   totalAnswers: number;
   page?: number;
-  filter?: number;
+  filter?: string;
 }
 
 const AllAnswers = async ({
@@ -23,8 +23,10 @@ const AllAnswers = async ({
   page,
   filter,
 }: Props) => {
-  const result = await getAllAnswer({
+  const result = await getAllAnswers({
     questionId,
+    page: page ? +page : 1,
+    sortBy: filter,
   });
 
   return (
@@ -39,7 +41,7 @@ const AllAnswers = async ({
         {result.answers.map((answer) => (
           <article key={answer._id} className="light-border border-b py-10">
             <div className="flex items-center justify-between">
-              <div className="mb-8 flex flex-1 flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
+              <div className="mb-8 flex flex-col-reverse justify-between gap-5 sm:flex-row sm:items-center sm:gap-2">
                 <Link
                   href={`/profile/${answer.author.clerkId}`}
                   className="flex flex-1 items-start gap-1 sm:items-center"
