@@ -11,8 +11,6 @@ import { SearchParamsProps } from "@/types";
 const Page = async ({ searchParams }: SearchParamsProps) => {
   const result = await getAllTags({});
 
-  console.log("-----------------reuslt", result);
-
   const { q } = searchParams;
 
   const filteredResult = result.tags.filter((tag) => {

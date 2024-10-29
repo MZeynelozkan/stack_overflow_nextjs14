@@ -27,8 +27,6 @@ export default async function Home({ searchParams }: SearchParamsProps) {
     return true;
   });
 
-  console.log("---------------------", result.questions);
-
   return (
     <>
       <div className="flex w-full flex-col-reverse items-center justify-between sm:flex-row">
