@@ -6,9 +6,23 @@ import { getAllTags } from "@/lib/actions/tag.actions";
 import { UserFilters } from "@/constants/filters";
 
 import Link from "next/link";
+import { SearchParamsProps } from "@/types";
 
-const Page = async () => {
+const Page = async ({ searchParams }: SearchParamsProps) => {
   const result = await getAllTags({});
+
+  console.log("-----------------reuslt", result);
+
+  const { q } = searchParams;
+
+  const filteredResult = result.tags.filter((tag) => {
+    if (q) {
+      const query = q.toLowerCase();
+
+      return tag.name.toLowerCase().includes(query);
+    }
+    return true;
+  });
 
   return (
     <>
@@ -30,8 +44,8 @@ const Page = async () => {
       </div>
 
       <section className="mt-12 flex flex-wrap gap-4">
-        {result.tags.length > 0 ? (
-          result.tags.map((tag) => (
+        {filteredResult.length > 0 ? (
+          filteredResult.map((tag) => (
             <Link
               href={`/tags/${tag._id}`}
               key={tag._id}

@@ -6,10 +6,28 @@ import LocalSearch from "@/components/shared/search/LocalSearch";
 import { Button } from "@/components/ui/button";
 import { HomePageFilters } from "@/constants/filters";
 import { getQuestions } from "@/lib/actions/question.action";
+import { SearchParamsProps } from "@/types";
 import Link from "next/link";
 
-export default async function Home() {
+export default async function Home({ searchParams }: SearchParamsProps) {
   const result = await getQuestions({});
+  const { q } = searchParams;
+
+  const filteredResult = result.questions.filter((question) => {
+    if (q) {
+      const query = q.toLowerCase();
+
+      return (
+        question.title.toLowerCase().includes(query) ||
+        question.content.toLowerCase().includes(query) ||
+        question.tags.some((tag) => tag.name.toLowerCase().includes(query)) ||
+        question.author.name.toLowerCase().includes(query)
+      );
+    }
+    return true;
+  });
+
+  console.log("---------------------", result.questions);
 
   return (
     <>
@@ -38,8 +56,8 @@ export default async function Home() {
       </div>
       <HomeFilters />
       <div className="mt-10 flex w-full flex-col gap-6">
-        {result.questions.length > 0 ? (
-          result.questions.map((question) => (
+        {filteredResult.length >= 0 ? (
+          filteredResult.map((question) => (
             <QuestionCard
               key={question._id}
               _id={question._id}

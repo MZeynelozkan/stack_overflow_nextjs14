@@ -1,12 +1,9 @@
 "use client";
 import React, { useRef, useState } from "react";
-
 import { Editor } from "@tinymce/tinymce-react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -17,58 +14,66 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Button } from "../ui/button";
 import { QuestionsSchema } from "@/lib/validations";
-import { Badge } from "lucide-react";
+import { Badge } from "../ui/badge";
 import Image from "next/image";
-import { createQuestion } from "@/lib/actions/question.action";
+import { createQuestion, editQuestion } from "@/lib/actions/question.action";
 import { useRouter, usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
 
-const type: any = "create";
-
 interface Props {
+  type?: string;
   mongoUserId: string;
+  questionDetails?: string;
 }
 
-const Question = ({ mongoUserId }: Props) => {
+const Question = ({ type, mongoUserId, questionDetails }: Props) => {
   const { mode } = useTheme();
-
   const editorRef = useRef(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const pathname = usePathname();
 
-  // const log = () => {
-  //   if (editorRef.current) {
-  //     console.log(editorRef.current.getContent());
-  //   }
-  // };
+  const parsedQuestionDetails = JSON.parse(questionDetails || "{}");
 
+  const groupedTags = parsedQuestionDetails.tags?.map((tag) => tag.name);
+
+  // 1. Define your form.
   const form = useForm<z.infer<typeof QuestionsSchema>>({
     resolver: zodResolver(QuestionsSchema),
     defaultValues: {
-      title: "",
-      explanation: "",
-      tags: [],
+      title: parsedQuestionDetails.title || "",
+      explanation: parsedQuestionDetails.content || "",
+      tags: groupedTags || [],
     },
   });
 
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof QuestionsSchema>) {
     setIsSubmitting(true);
-    try {
-      // make an async call to your API -> create a question
-      // contain all form data
-      await createQuestion({
-        title: values.title,
-        content: values.explanation,
-        tags: values.tags,
-        author: JSON.parse(mongoUserId),
-        path: pathname,
-      });
 
-      // navigate to home page
-      router.push("/");
+    try {
+      if (type === "Edit") {
+        await editQuestion({
+          questionId: parsedQuestionDetails._id,
+          title: values.title,
+          content: values.explanation,
+          path: pathname,
+        });
+
+        router.push(`/question/${parsedQuestionDetails._id}`);
+      } else {
+        await createQuestion({
+          title: values.title,
+          content: values.explanation,
+          tags: values.tags,
+          author: JSON.parse(mongoUserId),
+          path: pathname,
+        });
+
+        router.push("/");
+      }
     } catch (error) {
     } finally {
       setIsSubmitting(false);
@@ -105,8 +110,9 @@ const Question = ({ mongoUserId }: Props) => {
   };
 
   const handleTagRemove = (tag: string, field: any) => {
-    const updatedTags = field.value.filter((t: string) => t !== tag); // Etiketi listeden çıkar
-    form.setValue(field.name, updatedTags); // Güncellenmiş liste ile formu güncelle
+    const newTags = field.value.filter((t: string) => t !== tag);
+
+    form.setValue("tags", newTags);
   };
 
   return (
@@ -148,14 +154,14 @@ const Question = ({ mongoUserId }: Props) => {
               </FormLabel>
               <FormControl className="mt-3.5">
                 <Editor
-                  apiKey={"qdei7wgaq3no5vgjx3cz2f1ga8a1xcqelmak1ir9dr5m6zvm"}
-                  onInit={(_evt, editor) => {
+                  apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
+                  onInit={(evt, editor) => {
                     // @ts-ignore
                     editorRef.current = editor;
                   }}
                   onBlur={field.onBlur}
                   onEditorChange={(content) => field.onChange(content)}
-                  initialValue=""
+                  initialValue={parsedQuestionDetails.content || ""}
                   init={{
                     height: 350,
                     menubar: false,
@@ -175,17 +181,12 @@ const Question = ({ mongoUserId }: Props) => {
                       "insertdatetime",
                       "media",
                       "table",
-                      "code",
-                      "help",
-                      "wordcount",
                     ],
                     toolbar:
-                      "undo redo | blocks | " +
-                      "codesample | bold italic forecolor | alignleft aligncenter " +
-                      "alignright alignjustify | bullist numlist outdent indent | ",
-
-                    content_style:
-                      "body { font-family:Inter,; font-size:16px }",
+                      "undo redo | " +
+                      "codesample | bold italic forecolor | alignleft aligncenter |" +
+                      "alignright alignjustify | bullist numlist",
+                    content_style: "body { font-family:Inter; font-size:16px }",
                     skin: mode === "dark" ? "oxide-dark" : "oxide",
                     content_css: mode === "dark" ? "dark" : "light",
                   }}
@@ -210,6 +211,7 @@ const Question = ({ mongoUserId }: Props) => {
               <FormControl className="mt-3.5">
                 <>
                   <Input
+                    disabled={type === "Edit"}
                     className="no-focus paragraph-regular background-light900_dark300 light-border-2 text-dark300_light700 min-h-[56px] border"
                     placeholder="Add tags..."
                     onKeyDown={(e) => handleInputKeyDown(e, field)}
@@ -217,20 +219,26 @@ const Question = ({ mongoUserId }: Props) => {
 
                   {field.value.length > 0 && (
                     <div className="flex-start mt-2.5 gap-2.5">
-                      {field.value.map((tag: string) => (
+                      {field.value.map((tag: any) => (
                         <Badge
                           key={tag}
                           className="subtle-medium background-light800_dark300 text-light400_light500 flex items-center justify-center gap-2 rounded-md border-none px-4 py-2 capitalize"
+                          onClick={() =>
+                            type !== "Edit"
+                              ? handleTagRemove(tag, field)
+                              : () => {}
+                          }
                         >
-                          {tag} {/* Tag metnini gösterir */}
-                          <Image
-                            src="/assets/icons/close.svg" // Kapatma simgesi için kaynak
-                            alt="Close icon"
-                            width={12}
-                            height={12}
-                            className="cursor-pointer object-contain invert-0 dark:invert"
-                            onClick={() => handleTagRemove(tag, field)} // Etiketi kaldırma işlevi
-                          />
+                          {tag}
+                          {type !== "Edit" && (
+                            <Image
+                              src="/assets/icons/close.svg"
+                              alt="Close icon"
+                              width={12}
+                              height={12}
+                              className="cursor-pointer object-contain invert-0 dark:invert"
+                            />
+                          )}
                         </Badge>
                       ))}
                     </div>
@@ -238,7 +246,7 @@ const Question = ({ mongoUserId }: Props) => {
                 </>
               </FormControl>
               <FormDescription className="body-regular mt-2.5 text-light-500">
-                Add up to 3 tags to describe what your question is about.You
+                Add up to 3 tags to describe what your question is about. You
                 need to press enter to add a tag.
               </FormDescription>
               <FormMessage className="text-red-500" />
@@ -247,13 +255,13 @@ const Question = ({ mongoUserId }: Props) => {
         />
         <Button
           type="submit"
-          className="primary-gradient !text-light-900"
+          className="primary-gradient w-fit !text-light-900"
           disabled={isSubmitting}
         >
           {isSubmitting ? (
-            <>{type === "edit" ? "Editing..." : "Posting..."}</>
+            <>{type === "Edit" ? "Editing..." : "Posting..."}</>
           ) : (
-            <>{type === "edit" ? "Edit Question" : "Ask a Question"}</>
+            <>{type === "Edit" ? "Edit Question" : "Ask a Question"}</>
           )}
         </Button>
       </form>
