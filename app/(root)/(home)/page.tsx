@@ -10,21 +10,8 @@ import { SearchParamsProps } from "@/types";
 import Link from "next/link";
 
 export default async function Home({ searchParams }: SearchParamsProps) {
-  const result = await getQuestions({});
-  const { q } = searchParams;
-
-  const filteredResult = result.questions.filter((question) => {
-    if (q) {
-      const query = q.toLowerCase();
-
-      return (
-        question.title.toLowerCase().includes(query) ||
-        question.content.toLowerCase().includes(query) ||
-        question.tags.some((tag) => tag.name.toLowerCase().includes(query)) ||
-        question.author.name.toLowerCase().includes(query)
-      );
-    }
-    return true;
+  const result = await getQuestions({
+    searchQuery: searchParams.q,
   });
 
   return (
@@ -54,8 +41,8 @@ export default async function Home({ searchParams }: SearchParamsProps) {
       </div>
       <HomeFilters />
       <div className="mt-10 flex w-full flex-col gap-6">
-        {filteredResult.length >= 0 ? (
-          filteredResult.map((question) => (
+        {result.questions.length > 0 ? (
+          result.questions.map((question) => (
             <QuestionCard
               key={question._id}
               _id={question._id}

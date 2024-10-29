@@ -97,9 +97,21 @@ export async function getAllUsers(params: GetAllUsersParams) {
   try {
     connectToDatabase();
 
-    // const { page = 1, pageSize = 20, filter, searchQuery } = params;
+    const { searchQuery } = params;
 
-    const users = await User.find({}).sort({ createdAt: -1 });
+    const query: FilterQuery<typeof User> = {};
+
+    if (searchQuery) {
+      const escapedSearchQuery = searchQuery.replace(
+        /[.*+?^${}()|[\]\\]/g,
+        "\\$&"
+      );
+      query.$or = [
+        { name: { $regex: new RegExp(escapedSearchQuery, "i") } },
+        { username: { $regex: new RegExp(escapedSearchQuery, "i") } },
+      ];
+    }
+    const users = await User.find(query).sort({ createdAt: -1 });
 
     return { users };
   } catch (error) {
