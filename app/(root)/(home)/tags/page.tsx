@@ -7,11 +7,14 @@ import { TagFilters } from "@/constants/filters";
 
 import Link from "next/link";
 import { SearchParamsProps } from "@/types";
+import page from "../page";
+import Pagination from "@/components/shared/Pagination";
 
 const Page = async ({ searchParams }: SearchParamsProps) => {
   const result = await getAllTags({
     searchQuery: searchParams.q,
     filter: searchParams.filter,
+    page: searchParams.page ? +searchParams.page : 1,
   });
 
   const { q } = searchParams;
@@ -77,6 +80,10 @@ const Page = async ({ searchParams }: SearchParamsProps) => {
           />
         )}
       </section>
+      <Pagination
+        pageNumber={searchParams.page ? +searchParams.page : 1}
+        isNext={result.isNext}
+      />
     </>
   );
 };

@@ -80,6 +80,7 @@ const AllAnswers = async ({
           </article>
         ))}
       </div>
+      <Pageination pageNumber={page ? +page : 1} isNext={result.isNext} />
     </div>
   );
 };
