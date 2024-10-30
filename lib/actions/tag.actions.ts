@@ -81,6 +81,8 @@ export async function getQuestionsByTagId(params: GetQuestionsByTagIdParams) {
 
     const { tagId, page = 1, pageSize = 10, searchQuery } = params;
 
+    console.log(page, pageSize);
+
     const tagFilter: FilterQuery<ITag> = { _id: tagId };
 
     const tag = await Tag.findOne(tagFilter).populate({
