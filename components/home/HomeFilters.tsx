@@ -5,7 +5,6 @@ import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { useRouter, useSearchParams } from "next/navigation";
 import { formUrlQuery } from "@/lib/utils";
-import router from "next/router";
 
 const HomeFilters = () => {
   const searchParams = useSearchParams();

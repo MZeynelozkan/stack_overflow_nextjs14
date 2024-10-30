@@ -143,6 +143,8 @@ export async function getSavedQuestions(params: GetSavedQuestionsParams) {
 
     const { clerkId, page = 1, pageSize = 10, filter, searchQuery } = params;
 
+    console.log(page, pageSize);
+
     const query: FilterQuery<typeof Question> = searchQuery
       ? { title: { $regex: new RegExp(searchQuery, "i") } }
       : {};
@@ -226,6 +228,8 @@ export async function getUserAnswers(params: GetUserStatsParams) {
 
     const { userId, page = 1, pageSize = 10 } = params;
 
+    console.log(page, pageSize);
+
     const totalAnswers = await Answer.countDocuments({ author: userId });
 
     const userAnswers = await Answer.find({ author: userId })
@@ -245,6 +249,8 @@ export async function getUserQuestions(params: GetUserStatsParams) {
     connectToDatabase();
 
     const { userId, page = 1, pageSize = 10 } = params;
+
+    console.log(page, pageSize);
 
     const totalQuestions = await Question.countDocuments({ author: userId });
 
