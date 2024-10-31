@@ -6,6 +6,7 @@ import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import GlobalFilters from "./GlobalFilters";
+import { globalSearch } from "@/lib/actions/general.action";
 
 const GlobalResult = () => {
   const searchParams = useSearchParams();
@@ -45,9 +46,9 @@ const GlobalResult = () => {
   const renderLink = (type: string, id: string) => {
     switch (type) {
       case "question":
-        return `/question/${id}`;
+        return `/questions/${id}`;
       case "answer":
-        return `/question/${id}`;
+        return `/questions/${id}`;
       case "user":
         return `/profile/${id}`;
       case "tag":
