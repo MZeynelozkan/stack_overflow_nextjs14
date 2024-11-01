@@ -43,7 +43,7 @@ export async function createAnswer(params: CreateAnswerParams) {
   }
 }
 
-export async function getAnswers(params: GetAnswersParams) {
+export async function getAllAnswers(params: GetAnswersParams) {
   try {
     connectToDatabase();
 

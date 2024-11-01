@@ -16,24 +16,21 @@ import { useRef, useState } from "react";
 import { useTheme } from "@/context/ThemeProvider";
 import { Button } from "../ui/button";
 import Image from "next/image";
-
 import { createAnswer } from "@/lib/actions/answer.action";
 import { usePathname } from "next/navigation";
 
 interface Props {
+  question: string;
   questionId: string;
   authorId: string;
-  question: string;
 }
 
 const Answer = ({ question, questionId, authorId }: Props) => {
   const pathname = usePathname();
-
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmittingAI, setSetIsSubmittingAI] = useState(false);
   const { mode } = useTheme();
-
   const editorRef = useRef(null);
-
   const form = useForm<z.infer<typeof AnswerSchema>>({
     resolver: zodResolver(AnswerSchema),
     defaultValues: {
@@ -41,7 +38,7 @@ const Answer = ({ question, questionId, authorId }: Props) => {
     },
   });
 
-  async function handleCreateAnswer(values: z.infer<typeof AnswerSchema>) {
+  const handleCreateAnswer = async (values: z.infer<typeof AnswerSchema>) => {
     setIsSubmitting(true);
 
     try {
@@ -64,7 +61,40 @@ const Answer = ({ question, questionId, authorId }: Props) => {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
+
+  const generateAIAnswer = async () => {
+    if (!authorId) return;
+
+    setSetIsSubmittingAI(true);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}/api/chatgpt`,
+        {
+          method: "POST",
+          body: JSON.stringify({ question }),
+        }
+      );
+
+      const aiAnswer = await response.json();
+
+      // Convert plain text to HTML format
+
+      const formattedAnswer = aiAnswer.reply.replace(/\n/g, "<br />");
+
+      if (editorRef.current) {
+        const editor = editorRef.current as any;
+        editor.setContent(formattedAnswer);
+      }
+
+      // Toast...
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setSetIsSubmittingAI(false);
+    }
+  };
 
   return (
     <div>
@@ -75,18 +105,25 @@ const Answer = ({ question, questionId, authorId }: Props) => {
 
         <Button
           className="btn light-border-2 gap-1.5 rounded-md px-4 py-2.5 text-primary-500 shadow-none dark:text-primary-500"
-          onClick={() => {}}
+          onClick={generateAIAnswer}
         >
-          <Image
-            src="/assets/icons/stars.svg"
-            alt="star"
-            width={12}
-            height={12}
-            className="object-contain"
-          />
-          Generate an AI Answer
+          {isSubmittingAI ? (
+            <>Generating...</>
+          ) : (
+            <>
+              <Image
+                src="/assets/icons/stars.svg"
+                alt="star"
+                width={12}
+                height={12}
+                className="object-contain"
+              />
+              Generate AI Answer
+            </>
+          )}
         </Button>
       </div>
+
       <Form {...form}>
         <form
           className="mt-6 flex w-full flex-col gap-10"
@@ -99,8 +136,8 @@ const Answer = ({ question, questionId, authorId }: Props) => {
               <FormItem className="flex w-full flex-col gap-3">
                 <FormControl className="mt-3.5">
                   <Editor
-                    apiKey={"qdei7wgaq3no5vgjx3cz2f1ga8a1xcqelmak1ir9dr5m6zvm"}
-                    onInit={(_evt, editor) => {
+                    apiKey={process.env.NEXT_PUBLIC_TINY_EDITOR_API_KEY}
+                    onInit={(evt, editor) => {
                       // @ts-ignore
                       editorRef.current = editor;
                     }}
@@ -125,27 +162,23 @@ const Answer = ({ question, questionId, authorId }: Props) => {
                         "insertdatetime",
                         "media",
                         "table",
-                        "code",
-                        "help",
-                        "wordcount",
                       ],
                       toolbar:
-                        "undo redo | blocks | " +
-                        "codesample | bold italic forecolor | alignleft aligncenter " +
-                        "alignright alignjustify | bullist numlist outdent indent | ",
-
+                        "undo redo | " +
+                        "codesample | bold italic forecolor | alignleft aligncenter |" +
+                        "alignright alignjustify | bullist numlist",
                       content_style:
-                        "body { font-family:Inter,; font-size:16px }",
+                        "body { font-family:Inter; font-size:16px }",
                       skin: mode === "dark" ? "oxide-dark" : "oxide",
                       content_css: mode === "dark" ? "dark" : "light",
                     }}
                   />
                 </FormControl>
-
                 <FormMessage className="text-red-500" />
               </FormItem>
             )}
           />
+
           <div className="flex justify-end">
             <Button
               type="submit"
